@@ -16,7 +16,7 @@ python app.py
 validate
 
 ```
-curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8181/search
+curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8181/gsearch
 Access-Control-Allow-Origin: *
 Server: Werkzeug/1.0.1 Python/3.8.5
 Date: Thu, 31 Dec 2020 06:30:39 GMT
