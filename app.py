@@ -36,9 +36,9 @@ def get_edgeinfo(edge_string):
     edge_scored=redis_client.zrangebyscore(f"edges_scored:{edges_query}",'-inf','inf',0,5)
     if edge_scored:
         for sentence_key in edge_scored:
-            sentence=rediscluster_client.get(sentence_key)
+            sentence=redis_client.get(sentence_key)
             article_id=sentence_key.split(':')[1]
-            title=rediscluster_client.get(f"title:{article_id}")
+            title=redis_client.get(f"title:{article_id}")
         result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
@@ -107,5 +107,5 @@ def gsearch_task():
 
 
 if __name__ == "__main__":
-    app.run(port=8181, host='127.0.0.1')
+    app.run(port=8181, host='127.0.0.1',debug=False)
 
