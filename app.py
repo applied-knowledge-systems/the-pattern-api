@@ -34,7 +34,7 @@ def get_edgeinfo(edge_string):
         for sentence_key in edge_scored:
             sentence=redis_client.get(sentence_key)
             article_id=sentence_key.split(':')[1]
-            title=redis_client.get(f"title:{article_id}")
+            title=redis_client.hget(f"article:{article_id}",'title') 
         result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))

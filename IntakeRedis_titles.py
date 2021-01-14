@@ -10,32 +10,13 @@ except:
     log("Redis is not available ")
 
 
-import sys
-from datetime import datetime
-from pathlib import Path
-LOG_PATH = Path('./logs/')
-LOG_PATH.mkdir(exist_ok=True)
-
-import logging
-run_start_time = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-logfile = str(LOG_PATH/'log-{}-{}.txt'.format(run_start_time, "Parsing headers"))
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-    datefmt='%m/%d/%Y %H:%M:%S',
-    handlers=[
-        logging.FileHandler(logfile),
-        logging.StreamHandler(sys.stdout)
-    ])
-
-logger = logging.getLogger()
-
-
+from common.utils import *
 
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-n_cpus = os.cpu_count()
+# n_cpus = os.cpu_count()
+# FIXME: multithreading can be safely removed in favour of redis_client.pipeline, Redis is a single thread write
+n_cpus = 1
 logger.info(f'Number of CPUs: {n_cpus}')
 executor = ThreadPoolExecutor(max_workers=n_cpus)
 
@@ -60,7 +41,7 @@ def process_file(f, redis_client=redis_client):
         logger.info(f"already processed {article_id}")
         return article_id
     article_title=parse_json_title(f)
-    redis_client.set(f"title:{article_id}",article_title)
+    redis_client.hset(f"article_id:{article_id}",mapping={'title':article_title})
     redis_client.sadd(setname,article_id) 
     return article_id
 
