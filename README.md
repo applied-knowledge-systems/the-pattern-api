@@ -1,12 +1,19 @@
 # the-pattern-api
 API gateway for The Pattern 
 
-- [] add parsed date as int into nodes
+- [x] add parsed date as int into nodes
 - [x] add titles to edge api endpoint and edgeview
 
+This is a front end API to data pipeline, to have a right contenct in Redis/RedisGraph:
+
+* Launch RedisGears pipeline via launch docker cluster
+* Register RedisGears functions 
+* Add metadata parse_publish_dates.py 
+* python RedisIntakeRedisClusterSample.py --nsamples 105 --path cord19-research-challenge
+* gears-cli run --host 127.0.0.1 --port 30001 sentences_matcher_gears.py  --requirements requirements_gears_aho.txt 
 # Quickstart 
 
-assuming you have redisgraph on localhost 9001 
+assuming you have RedisGraph on localhost 9001 
 
 pip install -r requirements.txt 
 

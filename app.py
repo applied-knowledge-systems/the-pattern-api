@@ -27,6 +27,7 @@ def get_edgeinfo(edge_string):
     Tested with edges:C5162902:C5190121
     """
     log("Edge string "+edge_string)
+    years_set=set()
     edges_query=remove_prefix(edge_string,'edges:')
     result_table=[]
     edge_scored=redis_client.zrangebyscore(f"edges_scored:{edges_query}",'-inf','inf',0,5)
@@ -34,12 +35,15 @@ def get_edgeinfo(edge_string):
         for sentence_key in edge_scored:
             sentence=redis_client.get(sentence_key)
             article_id=sentence_key.split(':')[1]
-            title=redis_client.hget(f"article:{article_id}",'title') 
+            title=redis_client.hget(f"article:{article_id}",'title')
+            year_fetched=redis_client.hget(f"article:{article_id}",'year')
+            if year_fetched:
+                years_set.add(year_fetched)
         result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
-    return jsonify({'results': result_table}), 200
+    return jsonify({'results': result_table,'years':years_set}), 200
 
 @app.route('/gsearch', methods=['POST'])
 def gsearch_task():
@@ -51,9 +55,9 @@ def gsearch_task():
     search_string=request.json['search']
 
     nodes=match_nodes(search_string)
-    links,node_list=get_edges(nodes)
+    links, node_list, years_list =get_edges(nodes)
     node_list=get_nodes(node_list)
-    return jsonify({'nodes': node_list,'links': links}), 200
+    return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 
 if __name__ == "__main__":
