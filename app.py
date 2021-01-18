@@ -1,5 +1,5 @@
 #!flask/bin/python
-from flask import Flask, jsonify, request,json
+from flask import Flask, jsonify, request,json,abort
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
@@ -10,7 +10,10 @@ import itertools
 try:
     import redis
     import config
-    redis_client = redis.Redis(host=config.config()['host'],port=config.config()['port'],charset="utf-8", decode_responses=True)
+    if app.debug:
+        redis_client = redis.Redis(host=config.config()['host'],port=config.config()['port'],charset="utf-8", decode_responses=True)
+    else:
+        redis_client = redis.Redis(host=config.config(section='redis_local')['host'],port=config.config(section='redis_local')['port'],charset="utf-8", decode_responses=True)
 except:
     log("Redis is not available ")
 
@@ -53,13 +56,21 @@ def gsearch_task():
     if not request.json or not 'search' in request.json:
         abort(400)
     search_string=request.json['search']
-
     nodes=match_nodes(search_string)
-    links, node_list, years_list =get_edges(nodes)
+    if 'years' in request.json:
+        print("Years arrived")
+        years_query=request.json['years']
+        print(years_query)
+        print(type(years_query))
+        years_query=[int(x) for x in years_query]
+    else:
+        years_query=None
+    
+    links, node_list, years_list =get_edges(nodes,years_query)
     node_list=get_nodes(node_list)
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 
 if __name__ == "__main__":
-    app.run(port=8181, host='127.0.0.1',debug=True)
+    app.run(port=8181, host='0.0.0.0',debug=True)
 

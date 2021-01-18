@@ -18,10 +18,10 @@ def match_nodes(search_string, Automata=Automata):
 
 
 def get_nodes(nodes):
+    # FIXME: this not needed if add same functionality to edge query
     node_list=list()
     params = {'ids':nodes}
-    query="""WITH $ids as ids 
-    MATCH (e:entity) where e.id in ids RETURN DISTINCT e.id,e.name,max(e.rank)"""
+    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank)"""
     result = redis_graph.query(query, params)
     print(query)
     # result.pretty_print()
@@ -29,19 +29,24 @@ def get_nodes(nodes):
         node_list.append({'id':record[0],'name':record[1],'rank':record[2]})
     return node_list
 
-def get_edges(nodes):
+def get_edges(nodes, years=None):
     """
-    FIXME: created_at and updated_at is a stub
+    return all edges for the specified nodes
     """
     links=list()
     nodes_set=set()
     years_set=set()
-    params = {'ids':nodes}
-    log("Graph query node params "+str(nodes))
-    query="""WITH $ids as ids
-    MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank"""
+    if years is not None:
+        log("Graph query node params "+str(nodes))
+        params = {'ids':nodes, 'years':years}
+        query="""MATCH (e:entity)-[r]->(t:entity) where (e.id in $ids) and (r.year in $years) RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC"""
+    else:
+        params = {'ids':nodes}
+        log("Graph query node params "+str(nodes))
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC"""
+
     result = redis_graph.query(query,params)
-    # result.pretty_print()
+    result.pretty_print()
     for record in result.result_set:
         nodes_set.add(record[0])
         nodes_set.add(record[1])
