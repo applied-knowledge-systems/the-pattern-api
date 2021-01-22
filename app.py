@@ -39,7 +39,7 @@ def get_edgeinfo(edge_string):
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
             if year_fetched:
                 years_set.add(year_fetched)
-        result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
+            result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
