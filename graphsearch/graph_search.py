@@ -43,7 +43,7 @@ def get_edges(nodes, years=None):
     else:
         params = {'ids':nodes}
         log("Graph query node params "+str(nodes))
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC"""
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC LIMIT 400"""
 
     result = redis_graph.query(query,params)
     result.pretty_print()
