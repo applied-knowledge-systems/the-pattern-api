@@ -10,10 +10,7 @@ import itertools
 try:
     import redis
     import config
-    if app.debug:
-        redis_client = redis.Redis(host=config.config()['host'],port=config.config()['port'],charset="utf-8", decode_responses=True)
-    else:
-        redis_client = redis.Redis(host=config.config(section='redis_local')['host'],port=config.config(section='redis_local')['port'],charset="utf-8", decode_responses=True)
+    redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
 except:
     log("Redis is not available ")
 
