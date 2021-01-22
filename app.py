@@ -35,8 +35,8 @@ def get_edgeinfo(edge_string):
         for sentence_key in edge_scored:
             sentence=redis_client.get(sentence_key)
             article_id=sentence_key.split(':')[1]
-            title=redis_client.hget(f"article:{article_id}",'title')
-            year_fetched=redis_client.hget(f"article:{article_id}",'year')
+            title=redis_client.hget(f"article_id:{article_id}",'title')
+            year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
             if year_fetched:
                 years_set.add(year_fetched)
         result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
@@ -69,5 +69,5 @@ def gsearch_task():
 
 
 if __name__ == "__main__":
-    app.run(port=8181, host='0.0.0.0',debug=True)
+    app.run(port=8181, host='0.0.0.0',debug=False)
 
