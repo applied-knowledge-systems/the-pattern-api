@@ -43,7 +43,7 @@ def get_edgeinfo(edge_string):
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
-    return jsonify({'results': result_table,'years':years_set}), 200
+    return jsonify({'results': result_table,'years':list(years_set)}), 200
 
 @app.route('/gsearch', methods=['POST'])
 def gsearch_task():
