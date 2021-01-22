@@ -39,7 +39,7 @@ def get_edges(nodes, years=None):
     if years is not None:
         log("Graph query node params "+str(nodes))
         params = {'ids':nodes, 'years':years}
-        query="""MATCH (e:entity)-[r]->(t:entity) where (e.id in $ids) and (r.year in $years) RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC"""
+        query="""MATCH (e:entity)-[r]->(t:entity) where (e.id in $ids) and (r.year in $years) RETURN DISTINCT e.id,t.id,max(r.rank), r.year ORDER BY r.rank DESC LIMIT 400"""
     else:
         params = {'ids':nodes}
         log("Graph query node params "+str(nodes))
