@@ -11,6 +11,8 @@ try:
     import redis
     import config
     redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
+    rc_list=json.loads(config.config(section='rediscluster')['rediscluster'])
+    rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
 except:
     log("Redis is not available ")
 
@@ -33,7 +35,7 @@ def get_edgeinfo(edge_string):
     edge_scored=redis_client.zrangebyscore(f"edges_scored:{edges_query}",'-inf','inf',0,5)
     if edge_scored:
         for sentence_key in edge_scored:
-            sentence=redis_client.get(sentence_key)
+            sentence=rediscluster_client.get(sentence_key)
             article_id=sentence_key.split(':')[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
