@@ -35,8 +35,9 @@ def get_edgeinfo(edge_string):
     edge_scored=redis_client.zrangebyscore(f"edges_scored:{edges_query}",'-inf','inf',0,5)
     if edge_scored:
         for sentence_key in edge_scored:
-            sentence=rediscluster_client.get(sentence_key)
-            article_id=sentence_key.split(':')[1]
+            *head,tail=sentence_key.split(':')
+            sentence=rediscluster_client.hget(":".join(head),tail)
+            article_id=head[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
             if year_fetched:
