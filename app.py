@@ -64,10 +64,10 @@ def gsearch_task():
         years_query=None
     
     links, node_list, years_list =get_edges(nodes,years_query)
-    node_list=get_nodes(node_list)
+    node_list=[{"id":x[0],"name":x[1]} for x in node_list]
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 
 if __name__ == "__main__":
-    app.run(port=8181, host='0.0.0.0',debug=False)
+    app.run(port=8181, host='0.0.0.0',debug=True)
 

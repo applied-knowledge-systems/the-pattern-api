@@ -6,6 +6,7 @@ def loadAutomata():
     import joblib
     
     try:
+        #FIXME: save loaded files into /tmp/ (may be using boto get_contents_to_filename)
         Automata=joblib.load("./automata/automata_syns_filtered_direct.pkl")
     except:
         Automata=joblib.load(urlopen("https://github.com/AlexMikhalev/cord19redisknowledgegraph/raw/master/automata/automata_syns.pkl.bz2"))
