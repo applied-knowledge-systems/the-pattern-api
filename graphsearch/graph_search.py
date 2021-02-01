@@ -34,7 +34,7 @@ def get_edges(nodes, years=None):
     return all edges for the specified nodes, limit hardcoded
     """
     links=list()
-    nodes_set=set()
+    nodes_dict=dict()
     years_set=set()
     if years is not None:
         log("Graph query node params "+str(nodes))
@@ -48,12 +48,13 @@ def get_edges(nodes, years=None):
     result = redis_graph.query(query,params)
     result.pretty_print()
     for record in result.result_set:
-        nodes_set.add((record[0],record[4]))
-        nodes_set.add((record[1],record[5]))
+        #FIXME: this is rather manual distinct on nodes
+        nodes_dict[record[4]]=record[0]
+        nodes_dict[record[5]]=record[1]
         if record[3]:
             years_set.add(record[3])
         links.append({'source':record[0],'target':record[1],'rank':record[2],'created_at':str(record[3])})
-    return links, list(nodes_set), list(years_set)
+    return links, nodes_dict, list(years_set)
 
 if __name__ == "__main__":
     search_string="How does temperature and humidity affect the transmission of 2019-nCoV?"

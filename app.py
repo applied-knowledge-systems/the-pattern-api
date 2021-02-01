@@ -71,8 +71,8 @@ def gsearch_task():
     else:
         years_query=None
     
-    links, node_list, years_list =get_edges(nodes,years_query)
-    node_list=[{"id":x[0],"name":x[1]} for x in node_list]
+    links, node_dict, years_list =get_edges(nodes,years_query)
+    node_list=[{'name':k,'id':node_dict[k]} for k in node_dict]
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 
