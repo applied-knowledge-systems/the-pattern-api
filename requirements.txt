@@ -1,4 +1,5 @@
-redis
+redis==3.5.3
+redis-py-cluster==2.1.0
 joblib
 git+https://github.com/WojciechMula/pyahocorasick@master#egg=pyahocorasick
 ujson==2.0.3

@@ -6,16 +6,21 @@ CORS(app)
 from automata.utils import *
 
 import itertools
+import config
 
 try:
     import redis
-    import config
     redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
-    rc_list=json.loads(config.config(section='rediscluster')['rediscluster'])
-    rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
+
 except:
     log("Redis is not available ")
 
+try: 
+    from rediscluster import RedisCluster
+    rc_list=json.loads(config.config(section='rediscluster_docker')['rediscluster'])
+    rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
+except:
+    log("RedisCluster is not available")
 
 from graphsearch.graph_search import * 
 
