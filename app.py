@@ -72,7 +72,8 @@ def gsearch_task():
         years_query=None
     
     links, node_dict, years_list =get_edges(nodes,years_query)
-    node_list=[{'name':k,'id':node_dict[k]} for k in node_dict]
+    #FIXME: flatten hash into list for JSON: can be served out of redis hget
+    node_list=[{'name':k,'id':node_dict[k]['id'],'rank':node_dict[k]['rank']} for k in node_dict]
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 
