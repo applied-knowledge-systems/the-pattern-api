@@ -6,7 +6,7 @@ API gateway for The Pattern
 
 This is a front end API to data pipeline, to have a right contenct in Redis/RedisGraph:
 
-* Launch RedisGears pipeline via launch docker cluster
+* Launch RedisGears pipeline via launch docker cluster or better via docker compose
 * Register RedisGears functions 
 * Add metadata parse_publish_dates.py 
 * python RedisIntakeRedisClusterSample.py --nsamples 105 --path cord19-research-challenge
@@ -14,16 +14,15 @@ This is a front end API to data pipeline, to have a right contenct in Redis/Redi
 # Quickstart 
 
 assuming you have RedisGraph on localhost 9001 
-
-pip install -r requirements.txt 
-
-python app.py 
+```
+./start.sh
+```
 
 
 validate
 
 ```
-curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8181/gsearch
+curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8080/gsearch
 Access-Control-Allow-Origin: *
 Server: Werkzeug/1.0.1 Python/3.8.5
 Date: Thu, 31 Dec 2020 06:30:39 GMT
@@ -32,35 +31,17 @@ Date: Thu, 31 Dec 2020 06:30:39 GMT
 ```
 
 ```
-curl -X GET "http://127.0.0.1:8181/edge/edges:C5143452:C5119559"
+curl -X GET "http://127.0.0.1:8080/edge/edges:C5191700:C5125137"
 {
   "results": [
     {
-      "sentence": null, 
-      "sentencekey": "sentences:PMC7112304.xml:132", 
-      "title": null
+      "sentence": "In accordance with the latter observation equine arteritis virus RNA transcribed in nitro from full length cD A templates is infectious only when provided with a cap Glaser it al 1999", 
+      "sentencekey": "sentence:PMC136939.xml:{0cY}:45", 
+      "title": "Discontinuous and non-discontinuous subgenomic RNA transcription in a nidovirus"
     }
+  ], 
+  "years": [
+    "2002"
   ]
 }
 ```
-Populate titles 
-
-```
-python IntakeRedis_titles.py
-```
-Re-run: 
-
-```
-curl -X GET "http://127.0.0.1:8181/edge/edges:C5143452:C5119559"
-{
-  "results": [
-    {
-      "sentence": null, 
-      "sentencekey": "sentences:PMC7112304.xml:132", 
-      "title": "Common Features of Enveloped Viruses and Implications for Immunogen Design for Next-Generation Vaccines"
-    }
-  ]
-}
-```
-
-Currently titles are using standard SET operation which results in ~1 GB RAM, changing it to hset most likely will save memory. 

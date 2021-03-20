@@ -62,6 +62,8 @@ def gsearch_task():
         abort(400)
     search_string=request.json['search']
     nodes=match_nodes(search_string)
+    node_list=get_nodes(nodes)
+    print(node_list)
     if 'years' in request.json:
         print("Years arrived")
         years_query=request.json['years']
@@ -72,6 +74,7 @@ def gsearch_task():
         years_query=None
     
     links, node_dict, years_list =get_edges(nodes,years_query)
+    print(node_dict)
     #FIXME: flatten hash into list for JSON: can be served out of redis hget
     node_list=[{'name':k,'id':node_dict[k]['id'],'rank':node_dict[k]['rank']} for k in node_dict]
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200

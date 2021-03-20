@@ -17,17 +17,17 @@ def match_nodes(search_string, Automata=Automata):
 
 
 
-# def get_nodes(nodes):
-#     # FIXME: this not needed if add same functionality to edge query
-#     node_list=list()
-#     params = {'ids':nodes}
-#     query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank)"""
-#     result = redis_graph.query(query, params)
-#     print(query)
-#     # result.pretty_print()
-#     for record in result.result_set:
-#         node_list.append({'id':record[0],'name':record[1],'rank':record[2]})
-#     return node_list
+def get_nodes(nodes):
+    # this will get list of nodes
+    node_list=list()
+    params = {'ids':nodes}
+    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank)"""
+    result = redis_graph.query(query, params)
+    print(query)
+    result.pretty_print()
+    for record in result.result_set:
+        node_list.append({'id':record[0],'name':record[1],'rank':record[2]})
+    return node_list
 
 def get_edges(nodes, years=None):
     """
