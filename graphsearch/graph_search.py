@@ -2,7 +2,8 @@ import redis
 import config
 from redisgraph import Graph
 
-redis_client = redis.Redis(host=config.config(section='redis_local')['host'],port=config.config(section='redis_local')['port'],charset="utf-8", decode_responses=True)
+#FIXME: move connection string to enviroment variable
+redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
 redis_graph = Graph('cord19medical', redis_client)
 
 from automata.utils import *
