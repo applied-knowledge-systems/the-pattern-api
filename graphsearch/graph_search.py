@@ -2,8 +2,8 @@ import redis
 import config
 from redisgraph import Graph
 
-r = redis.Redis(host=config.config()['host'],port=config.config()['port'])
-redis_graph = Graph('cord19medical', r)
+redis_client = redis.Redis(host=config.config(section='redis_local')['host'],port=config.config(section='redis_local')['port'],charset="utf-8", decode_responses=True)
+redis_graph = Graph('cord19medical', redis_client)
 
 from automata.utils import *
 
@@ -21,7 +21,7 @@ def get_nodes(nodes):
     # this will get list of nodes
     node_list=list()
     params = {'ids':nodes}
-    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank)"""
+    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank) LIMIT 400"""
     result = redis_graph.query(query, params)
     print(query)
     result.pretty_print()
@@ -39,11 +39,11 @@ def get_edges(nodes, years=None):
     if years is not None:
         log("Graph query node params "+str(nodes))
         params = {'ids':nodes, 'years':years}
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, e.name,e.rank, t.id, t.name, t.rank, max(r.rank), r.year ORDER BY r.rank DESC LIMIT 400"""
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, e.name,e.rank, t.id, t.name, t.rank, max(r.rank), r.year ORDER BY r.rank DESC"""
     else:
         params = {'ids':nodes}
         log("Graph query node params "+str(nodes))
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, e.name,e.rank, t.id, t.name, t.rank, max(r.rank), r.year ORDER BY r.rank DESC LIMIT 400"""
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, e.name,e.rank, t.id, t.name, t.rank, max(r.rank), r.year ORDER BY r.rank DESC"""
 
     result = redis_graph.query(query,params)
     result.pretty_print()
