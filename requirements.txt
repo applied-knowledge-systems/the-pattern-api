@@ -7,3 +7,4 @@ flask
 flask_cors
 redisgraph
 gunicorn
+torch==1.7.1
