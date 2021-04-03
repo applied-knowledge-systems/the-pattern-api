@@ -3,9 +3,13 @@ model = None
 
 
 import torch
-from redisai import ClusterClient
-startup_nodes = [{"host": "127.0.0.1", "port": "30001"}, {"host": "127.0.0.1", "port":"30002"}, {"host":"127.0.0.1", "port":"30003"}]
-r = ClusterClient(startup_nodes = startup_nodes)
+
+try: 
+    from redisai import ClusterClient
+    rc_list=json.loads(config.config(section='rediscluster_docker')['rediscluster'])
+    rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
+except:
+    log("RedisCluster is not available")
 import numpy as np
 
 def loadTokeniser():
@@ -30,11 +34,11 @@ def qa(question, content_text,hash_tag):
     
 
 
-    r.tensorset(f'input_ids{hash_tag}', input_ids)
-    r.tensorset(f'attention_mask{hash_tag}', attention_mask)
-    r.tensorset(f'token_type_ids{hash_tag}', token_type_ids)
+    rediscluster_client.tensorset(f'input_ids{hash_tag}', input_ids)
+    rediscluster_client.tensorset(f'attention_mask{hash_tag}', attention_mask)
+    rediscluster_client.tensorset(f'token_type_ids{hash_tag}', token_type_ids)
 
-    r.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'attention_mask{hash_tag}', f'token_type_ids{hash_tag}'],
+    rediscluster_client.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'attention_mask{hash_tag}', f'token_type_ids{hash_tag}'],
                         [f'answer_start_scores{hash_tag}', f'answer_end_scores{hash_tag}'])
 
     print(f"Model run on {hash_tag}")
