@@ -10,14 +10,14 @@ import config
 
 try:
     import redis
-    redis_client = redis.Redis(host=config.config(section='redis_local')['host'],port=config.config(section='redis_local')['port'],charset="utf-8", decode_responses=True)
+    redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
 
 except:
     log("Redis is not available ")
 
 try: 
     from rediscluster import RedisCluster
-    rc_list=json.loads(config.config(section='rediscluster')['rediscluster'])
+    rc_list=json.loads(config.config(section='rediscluster_docker')['rediscluster'])
     rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
 except:
     log("RedisCluster is not available")
