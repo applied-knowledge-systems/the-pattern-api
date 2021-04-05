@@ -42,8 +42,8 @@ def qa(question, content_text,hash_tag):
                         [f'answer_start_scores{hash_tag}', f'answer_end_scores{hash_tag}'])
 
     print(f"Model run on {hash_tag}")
-    answer_start_scores = r.tensorget(f'answer_start_scores{hash_tag}')
-    answer_end_scores = r.tensorget(f'answer_end_scores{hash_tag}')
+    answer_start_scores = rediscluster_client.tensorget(f'answer_start_scores{hash_tag}')
+    answer_end_scores = rediscluster_client.tensorget(f'answer_end_scores{hash_tag}')
 
     answer_start = np.argmax(answer_start_scores)
     answer_end = np.argmax(answer_end_scores) + 1
