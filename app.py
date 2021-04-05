@@ -7,18 +7,27 @@ from automata.utils import *
 
 import itertools
 import config
+import os 
+
+config_switch=os.getenv('DOCKER', 'local')
+if config_switch=='local':
+    startup_nodes = [{"host": "127.0.0.1", "port": "30001"}, {"host": "127.0.0.1", "port":"30002"}, {"host":"127.0.0.1", "port":"30003"}]
+    host="127.0.0.1"
+    port=9001
+else:
+    startup_nodes = [{"host": "rgcluster", "port": "30001"}, {"host": "rgcluster", "port":"30002"}, {"host":"rgcluster", "port":"30003"}]
+    host="redisgraph"
+    port=6379
 
 try:
     import redis
-    redis_client = redis.Redis(host=config.config(section='redis')['host'],port=config.config(section='redis')['port'],charset="utf-8", decode_responses=True)
-
+    redis_client = redis.Redis(host=host,port=port,charset="utf-8", decode_responses=True)
 except:
     log("Redis is not available ")
 
 try: 
     from rediscluster import RedisCluster
-    rc_list=json.loads(config.config(section='rediscluster_docker')['rediscluster'])
-    rediscluster_client = RedisCluster(startup_nodes=rc_list, decode_responses=True)
+    rediscluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 except:
     log("RedisCluster is not available")
 

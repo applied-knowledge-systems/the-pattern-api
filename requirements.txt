@@ -7,5 +7,5 @@ flask
 flask_cors
 redisgraph
 gunicorn
-torch==1.7.1
+transformers
 git+https://github.com/RedisAI/redisai-py.git@cluster_api#egg=redisai
