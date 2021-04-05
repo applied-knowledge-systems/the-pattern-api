@@ -13,11 +13,11 @@ config_switch=os.getenv('DOCKER', 'local')
 if config_switch=='local':
     startup_nodes = [{"host": "127.0.0.1", "port": "30001"}, {"host": "127.0.0.1", "port":"30002"}, {"host":"127.0.0.1", "port":"30003"}]
     host="127.0.0.1"
-    port=9001
+    port="9001"
 else:
     startup_nodes = [{"host": "rgcluster", "port": "30001"}, {"host": "rgcluster", "port":"30002"}, {"host":"rgcluster", "port":"30003"}]
     host="redisgraph"
-    port=6379
+    port="6379"
 
 try:
     import redis
@@ -27,7 +27,7 @@ except:
 
 try: 
     from rediscluster import RedisCluster
-    rediscluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+    rediscluster_client = RedisCluster(startup_nodes=startup_nodes,charset="utf-8", decode_responses=True)
 except:
     log("RedisCluster is not available")
 
@@ -50,17 +50,21 @@ def get_edgeinfo(edge_string):
     if edge_scored:
         for sentence_key in edge_scored:
             *head,tail=sentence_key.split(':')
+            #TODO: report bug to rediscluster py - this is now returns bytes, despite decode_responses=True
             sentence=rediscluster_client.hget(":".join(head),tail)
             article_id=head[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
             if year_fetched:
                 years_set.add(year_fetched)
-            result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key})
+            result_table.append({'title':title,'sentence':str(sentence),'sentencekey':sentence_key})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
+    print(result_table)
+    print(years_set)
     return jsonify({'results': result_table,'years':list(years_set)}), 200
+
 
 @app.route('/gsearch', methods=['POST'])
 def gsearch_task():
