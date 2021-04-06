@@ -1,12 +1,11 @@
 #!flask/bin/python
-from flask import Flask, jsonify, request,json,abort
+from flask import Flask, jsonify, request,abort
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 from automata.utils import *
 
-import itertools
-import config
+
 import os 
 
 config_switch=os.getenv('DOCKER', 'local')
@@ -75,8 +74,6 @@ def gsearch_task():
         abort(400)
     search_string=request.json['search']
     nodes=match_nodes(search_string)
-    node_list=get_nodes(nodes)
-    print(node_list)
     if 'years' in request.json:
         print("Years arrived")
         years_query=request.json['years']
@@ -85,11 +82,9 @@ def gsearch_task():
         years_query=[int(x) for x in years_query]
     else:
         years_query=None
-    
-    links, node_dict, years_list =get_edges(nodes,years_query)
-    print(node_dict)
-    #FIXME: flatten hash into list for JSON: can be served out of redis hget
-    node_list=[{'name':k,'id':node_dict[k]['id'],'rank':node_dict[k]['rank']} for k in node_dict]
+
+    links, nodes, years_list = get_edges(nodes,years_query)
+    node_list=get_nodes(nodes)
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
 from qasearch.qa_bert import *
