@@ -65,7 +65,7 @@ def get_edgeinfo(edge_string):
     return jsonify({'results': result_table,'years':list(years_set)}), 200
 
 
-@app.route('/gsearch', methods=['POST'])
+@app.route('/search', methods=['POST'])
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
