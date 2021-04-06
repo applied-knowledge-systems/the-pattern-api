@@ -36,7 +36,7 @@ def get_nodes(nodes):
     nodes_set=set()
     params = {'ids':nodes}
     print(params)
-    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank) LIMIT 200"""
+    query="""WITH $ids as ids MATCH (e:entity) where (e.id in ids) RETURN DISTINCT e.id,e.name,max(e.rank)"""
     result = redis_graph.query(query, params)
     print("Log nodes query")
     print(query)
@@ -45,8 +45,7 @@ def get_nodes(nodes):
         if record[0] not in nodes_set:
             node_list.append({'id':record[0],'name':record[1],'rank':record[2]})
             nodes_set.add(record[0])
-        else:
-            pass
+
     return node_list
 
 def get_edges(nodes, years=None):
