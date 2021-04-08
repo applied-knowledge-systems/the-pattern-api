@@ -12,7 +12,7 @@ else:
 
 try: 
     from redisai import ClusterClient
-    rediscluster_client = ClusterClient(startup_nodes=startup_nodes)
+    redisai_cluster_client = ClusterClient(startup_nodes=startup_nodes)
 except:
     print("Redis Cluster is not available")
 
@@ -39,16 +39,16 @@ def qa(question, content_text,hash_tag):
     
 
 
-    rediscluster_client.tensorset(f'input_ids{hash_tag}', input_ids)
-    rediscluster_client.tensorset(f'attention_mask{hash_tag}', attention_mask)
-    rediscluster_client.tensorset(f'token_type_ids{hash_tag}', token_type_ids)
+    redisai_cluster_client.tensorset(f'input_ids{hash_tag}', input_ids)
+    redisai_cluster_client.tensorset(f'attention_mask{hash_tag}', attention_mask)
+    redisai_cluster_client.tensorset(f'token_type_ids{hash_tag}', token_type_ids)
 
-    rediscluster_client.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'attention_mask{hash_tag}', f'token_type_ids{hash_tag}'],
+    redisai_cluster_client.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'attention_mask{hash_tag}', f'token_type_ids{hash_tag}'],
                         [f'answer_start_scores{hash_tag}', f'answer_end_scores{hash_tag}'])
 
     print(f"Model run on {hash_tag}")
-    answer_start_scores = rediscluster_client.tensorget(f'answer_start_scores{hash_tag}')
-    answer_end_scores = rediscluster_client.tensorget(f'answer_end_scores{hash_tag}')
+    answer_start_scores = redisai_cluster_client.tensorget(f'answer_start_scores{hash_tag}')
+    answer_end_scores = redisai_cluster_client.tensorget(f'answer_end_scores{hash_tag}')
 
     answer_start = np.argmax(answer_start_scores)
     answer_end = np.argmax(answer_end_scores) + 1
