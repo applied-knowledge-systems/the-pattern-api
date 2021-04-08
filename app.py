@@ -65,7 +65,7 @@ def get_edgeinfo(edge_string):
     return jsonify({'results': result_table,'years':list(years_set)}), 200
 
 
-@app.route('/search', methods=['POST'])
+@app.route('/search', methods=['POST','GET'])
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
@@ -82,8 +82,13 @@ def gsearch_task():
         years_query=[int(x) for x in years_query]
     else:
         years_query=None
-
-    links, nodes, years_list = get_edges(nodes,years_query)
+    if 'limit' in request.json:
+        limit=request.json['limit']
+        print("Limit arrived",limit)
+    else:
+        limit=200
+        
+    links, nodes, years_list = get_edges(nodes,years_query,limit)
     node_list=get_nodes(nodes)
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 

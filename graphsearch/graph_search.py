@@ -48,21 +48,22 @@ def get_nodes(nodes):
 
     return node_list
 
-def get_edges(nodes, years=None):
+def get_edges(nodes, years=None, limits=400):
     """
     return all edges for the specified nodes, limit hardcoded
     """
     links=list()
     nodes_set=set()
     years_set=set()
+    print(limits)
     if years is not None:
         log("Graph query node params "+str(nodes))
-        params = {'ids':nodes, 'years':years}
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT 200"""
+        params = {'ids':nodes, 'years':years,'limits':int(limits)}
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
     else:
-        params = {'ids':nodes}
+        params = {'ids':nodes,'limits':int(limits)}
         log("Graph query node params "+str(nodes))
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT 200"""
+        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
 
     result = redis_graph.query(query,params)
     result.pretty_print()
