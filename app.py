@@ -60,7 +60,7 @@ def get_edgeinfo(edge_string):
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
-    print(result_table)
+    # print(result_table)
     print(years_set)
     return jsonify({'results': result_table,'years':list(years_set)}), 200
 
@@ -86,7 +86,7 @@ def gsearch_task():
         limit=request.json['limit']
         print("Limit arrived",limit)
     else:
-        limit=200
+        limit=600
         
     links, nodes, years_list = get_edges(nodes,years_query,limit)
     node_list=get_nodes(nodes)
