@@ -70,24 +70,35 @@ def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
     """
-    if not request.json or not 'search' in request.json:
-        abort(400)
-    search_string=request.json['search']
-    nodes=match_nodes(search_string)
-    if 'years' in request.json:
-        print("Years arrived")
-        years_query=request.json['years']
-        print(years_query)
-        print(type(years_query))
-        years_query=[int(x) for x in years_query]
+    years_query=None
+    limit=300
+    if request.method == 'POST':
+        if not 'search' in request.json:
+            abort(400)
+        else:
+            search_string=request.json['search']
+
+        if 'years' in request.json:
+            print("Years arrived")
+            years_query=request.json['years']
+            print(years_query)
+            years_query=[int(x) for x in years_query]
+            
+
+        if 'limit' in request.json:
+            limit=request.json['limit']
+            print("Limit arrived",limit)
     else:
-        years_query=None
-    if 'limit' in request.json:
-        limit=request.json['limit']
-        print("Limit arrived",limit)
-    else:
-        limit=600
-        
+        if not bool(request.args.get('q')):
+            abort(400)
+        else:
+            search_string=request.args.get('q')
+            if request.args.get('limit'):
+                limit=request.args.get('limit')
+                print("Limit arrived via get", limit)
+            
+
+    nodes=match_nodes(search_string)    
     links, nodes, years_list = get_edges(nodes,years_query,limit)
     node_list=get_nodes(nodes)
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
