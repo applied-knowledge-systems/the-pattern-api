@@ -3,7 +3,10 @@ from flask import Flask, jsonify, request,abort
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
-from automata.utils import *
+
+with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
+    import utils
+from utils import loadAutomata, find_matches
 
 
 import os 
