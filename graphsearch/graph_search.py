@@ -17,7 +17,12 @@ else:
 redis_client = redis.Redis(host=host,port=port,charset="utf-8", decode_responses=True)
 redis_graph = Graph('cord19medical', redis_client)
 
-from automata.utils import *
+import httpimport
+with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
+    import utils
+from utils import loadAutomata, find_matches
+
+Automata=loadAutomata()
 
 def match_nodes(search_string, Automata=Automata):
     if not Automata:
@@ -40,7 +45,6 @@ def get_nodes(nodes):
     result = redis_graph.query(query, params)
     print("Log nodes query")
     print(query)
-    result.pretty_print()
     for record in result.result_set:
         if record[0] not in nodes_set:
             node_list.append({'id':record[0],'name':record[1],'rank':record[2]})
@@ -57,16 +61,15 @@ def get_edges(nodes, years=None, limits=400):
     years_set=set()
     print(limits)
     if years is not None:
-        log("Graph query node params "+str(nodes))
+        print("Graph query node params "+str(nodes))
         params = {'ids':nodes, 'years':years,'limits':int(limits)}
         query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
     else:
         params = {'ids':nodes,'limits':int(limits)}
-        log("Graph query node params "+str(nodes))
+        print("Graph query node params "+str(nodes))
         query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
 
     result = redis_graph.query(query,params)
-    result.pretty_print()
     for record in result.result_set:
         nodes_set.add(record[0])
         nodes_set.add(record[1])
