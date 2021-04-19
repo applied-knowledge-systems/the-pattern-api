@@ -23,27 +23,30 @@ def loadTokeniser():
     return tokenizer
 
 
-def qa(question, content_text,hash_tag):
+def qa(question, sentence_key,hash_tag):
+    ### question is encoded
+    ### use pre-computed context/answer text tensor
 
     global tokenizer
 
     if not tokenizer:
         tokenizer=loadTokeniser()
 
- 
-    
-    inputs = tokenizer.encode_plus(question, content_text, add_special_tokens=True, truncation=True, return_tensors="np")
-    input_ids = inputs['input_ids']
-    attention_mask = inputs['attention_mask']
-    token_type_ids = inputs['token_type_ids']
-    
+     
 
+    token_key = f"tokenized:bert:qa:{sentence_key}"
 
-    redisai_cluster_client.tensorset(f'input_ids{hash_tag}', input_ids)
-    redisai_cluster_client.tensorset(f'attention_mask{hash_tag}', attention_mask)
-    redisai_cluster_client.tensorset(f'token_type_ids{hash_tag}', token_type_ids)
+    input_ids_question = tokenizer.encode(question, add_special_tokens=True, truncation=True, return_tensors="np")
 
-    redisai_cluster_client.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'attention_mask{hash_tag}', f'token_type_ids{hash_tag}'],
+    num_seg_a=len(input_ids_question)
+    num_seg_b=redisai_cluster_client.tensorget(token_key,meta_only=True)['shape'][0]
+    segment_ids = np.array([0]*num_seg_a + [1]*num_seg_b)
+
+    redisai_cluster_client.tensorset(f'input_ids{hash_tag}', input_ids_question)
+    # TODO: add torchscript (qa_append) to run numpy append input_ids_question and input_ids_context via torch.cat
+    redisai_cluster_client.tensorset(f'token_type_ids{hash_tag}', segment_ids)
+
+    redisai_cluster_client.modelrun(f'bert-qa{hash_tag}', [f'input_ids{hash_tag}', f'token_type_ids{hash_tag}'],
                         [f'answer_start_scores{hash_tag}', f'answer_end_scores{hash_tag}'])
 
     print(f"Model run on {hash_tag}")
