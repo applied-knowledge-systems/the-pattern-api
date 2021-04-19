@@ -25,7 +25,7 @@ def loadTokeniser():
 
 def qa(question, sentence_key,hash_tag):
     ### question is encoded
-    ### use pre-computed context/answer text tensor
+    ### use pre-computed context/answer text tensor populated by tokeniser_gears_redisai.py
 
     global tokenizer
 
