@@ -34,9 +34,11 @@ def qa(record):
     token_key = f"tokenized:bert:qa:{sentence_key}"
 
     input_ids_question = tokenizer.encode(question, add_special_tokens=True, truncation=True, return_tensors="np")
-
+    log("Input ids question "+str(input_ids_question))
+    log("Input ids question shape"+str(input_ids_question.shape))
+    log("Input ids question shape"+str(input_ids_question.dtype))
     t=redisAI.getTensorFromKey(token_key)
-    input_ids_context=np.frombuffer(redisAI.tensorGetDataAsBlob(t), dtype=np.int16).reshape(redisAI.tensorGetDims(t))
+    input_ids_context=np.frombuffer(redisAI.tensorGetDataAsBlob(t), dtype=np.int64).reshape(redisAI.tensorGetDims(t))
     log("Input ids context "+str(input_ids_context))
     log("Input ids content shape "+str(input_ids_context.shape))
     log("Input ids content dtype "+str(input_ids_context.dtype))
@@ -70,9 +72,10 @@ def qa(record):
     log("answer end"+str(res[1]))
 
     log(f"Model run on {hash_tag}")
-    answer_start_scores = res[0]
-    answer_end_scores = res[1]
-
+    answer_start_scores=np.frombuffer(redisAI.tensorGetDataAsBlob(res[0]), dtype=np.float32).reshape(redisAI.tensorGetDims(res[0]))
+    # answer_start_scores = res[0]
+    answer_end_scores = np.frombuffer(redisAI.tensorGetDataAsBlob(res[1]), dtype=np.float32).reshape(redisAI.tensorGetDims(res[1]))
+    log("Answer start scores type " +str(type(answer_start_scores)))
     answer_start = np.argmax(answer_start_scores)
     answer_end = np.argmax(answer_end_scores) + 1
     log("Answer start "+str(answer_start))
