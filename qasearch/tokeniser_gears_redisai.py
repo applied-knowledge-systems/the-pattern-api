@@ -20,20 +20,21 @@ def parse_sentence(record):
     global tokenizer
     if not tokenizer:
         tokenizer=loadTokeniser()
+    hash_tag="{%s}" % hashtag()
 
     for idx, value in sorted(record['value'].items(), key=lambda item: int(item[0])):
         tokens = tokenizer.encode(" ".join(value), add_special_tokens=False, max_length=511, truncation=True, return_tensors="np")
         tokens = np.append(tokens,tokenizer.sep_token_id).astype(np.int16) 
         log(str(tokens.shape))
         log(str(tokens))
-        tensor=redisAI.createTensorFromBlob('INT64', tokens.shape, tokens.tobytes())
+        tensor=redisAI.createTensorFromBlob('INT16', tokens.shape, tokens.tobytes())
         
         key_prefix='sentence:'
         sentence_key=remove_prefix(record['key'],key_prefix)
         token_key = f"tokenized:bert:qa:{sentence_key}:{idx}"
         # execute('SET', token_key, tokens)
         redisAI.setTensorInKey(token_key, tensor)
-        execute('SADD','processed_docs_stage3_tokenized', token_key)
+        execute('SADD',f'processed_docs_stage3_tokenized{hash_tag}', token_key)
 
 gb = GB()
 gb.foreach(parse_sentence)
