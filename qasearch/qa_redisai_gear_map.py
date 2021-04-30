@@ -1,4 +1,6 @@
-### This gears will pre-compute (encode) all sentences using BERT tokenizer for QA
+### This gears will use pre-computed answers all sentences using BERT tokenizer for QA, run QA model and cache results.
+### and you can still keep writing into redis thanks to async/await 
+
 
 tokenizer = None 
 
@@ -8,10 +10,25 @@ def loadTokeniser():
     tokenizer = BertTokenizerFast.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad")
     return tokenizer
 
+def to_np(rai_tensor, data_type):
+  return np.frombuffer(redisAI.tensorGetDataAsBlob(rai_tensor), dtype=data_type).reshape(redisAI.tensorGetDims(rai_tensor))
 
 
+async def qa_cached(record):
+    cache_key='cache_{%s}_{%s}_{%s}' % (hashtag(), record[1],record[2])
+    res = execute('get', cache_key)
+    log("QA cached called")
+    log("RECORD %s" % str(record) )
+    if res:
+        log("Cache hit")
+        log(str(res))
+        return res
+    res = await qa(record)
+    execute('set',cache_key, res)
+    return res
 
-def qa(record):
+
+async def qa(record):
     log("Called with "+ str(record))
     log("Trigger "+str(record[0]))
     log("Key "+ str(record[1]))
@@ -66,7 +83,7 @@ def qa(record):
     redisAI.modelRunnerAddInput(modelRunner, 'token_type_ids', token_type_ids_ts)
     redisAI.modelRunnerAddOutput(modelRunner, 'answer_start_scores')
     redisAI.modelRunnerAddOutput(modelRunner, 'answer_end_scores')
-    res = redisAI.modelRunnerRun(modelRunner)
+    res = await redisAI.modelRunnerRunAsync(modelRunner)
     # redisAI.setTensorInKey('c{1}', res[0])
     log(str(res[0]))
     log("answer end"+str(res[1]))
@@ -80,10 +97,10 @@ def qa(record):
     answer_end = np.argmax(answer_end_scores) + 1
     log("Answer start "+str(answer_start))
     log("Answer end "+str(answer_end))
-    answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end]))
+    answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end],skip_special_tokens = True))
     return answer
 
 
 gb = GB('CommandReader')
-gb.map(qa)
+gb.map(qa_cached)
 gb.register(trigger='RunQABERT',mode="async_local")

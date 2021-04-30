@@ -21,6 +21,19 @@
 
 ## TODO 
 
-- [ ] Pre-compute content_text for content_text
-BERT models require pair of sequences: [CLS] A [SEP] B [SEP] , see build_inputs_with_special_tokens from tokenizers and this [blog post](https://mccormickml.com/2020/03/10/question-answering-with-a-fine-tuned-BERT/)
+- [X] Pre-compute content_text for content_text
 
+
+
+
+# Pre-Compute tensors ("answer part")
+
+```
+gears-cli run --host 127.0.0.1 --port 30001 tokeniser_gears_redisai.py --requirements requirements.txt
+```
+
+
+
+# References:
+
+BERT models require pair of sequences: [CLS] A [SEP] B [SEP] , see build_inputs_with_special_tokens from tokenizers and this [blog post](https://mccormickml.com/2020/03/10/question-answering-with-a-fine-tuned-BERT/)
