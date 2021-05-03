@@ -14,24 +14,21 @@ def to_np(rai_tensor, data_type):
   return np.frombuffer(redisAI.tensorGetDataAsBlob(rai_tensor), dtype=data_type).reshape(redisAI.tensorGetDims(rai_tensor))
 
 
-async def qa_cached(record):
+async def qa_cached_keymiss(record):
     log("QA cached called "+str(record))
     val=record['key'].split('_')
-    cache_key='cache_{%s}_%s_%s' % (hashtag(), val[1],val[2])
-    res = execute('get', cache_key)
-    log("QA cached called")
-    if res:
-        log("Cache hit")
-        log(str(res))
-        return res
+    cache_key='cache{%s}_%s_%s' % (hashtag(), val[1],val[2])
+    log("QA cached called from keymiss")
     res = await qa(val)
+    log("Result "+str(res))
+    log("Cache key "+str(cache_key))
     execute('set',cache_key, res)
+    override_reply(res)
     return res
 
 
 async def qa(record):
     log("Called with "+ str(record))
-    log("Trigger "+str(record[0]))
     log("Key "+ str(record[1]))
     log("Question  "+ str(record[2]))
 
@@ -54,7 +51,7 @@ async def qa(record):
     input_ids_question = tokenizer.encode(question, add_special_tokens=True, truncation=True, return_tensors="np")
     log("Input ids question "+str(input_ids_question))
     log("Input ids question shape"+str(input_ids_question.shape))
-    log("Input ids question shape"+str(input_ids_question.dtype))
+    log("Input ids question dtype "+str(input_ids_question.dtype))
     t=redisAI.getTensorFromKey(token_key)
     input_ids_context=np.frombuffer(redisAI.tensorGetDataAsBlob(t), dtype=np.int64).reshape(redisAI.tensorGetDims(t))
     log("Input ids context "+str(input_ids_context))
@@ -99,8 +96,9 @@ async def qa(record):
     log("Answer start "+str(answer_start))
     log("Answer end "+str(answer_end))
     answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(input_ids[answer_start:answer_end],skip_special_tokens = True))
+    log("Answer "+str(answer))
     return answer
 
 gb = GB('KeysReader')
-gb.map(qa_cached)
+gb.map(qa_cached_keymiss)
 gb.register(prefix='cache*', commands=['get'], eventTypes=['keymiss'], mode="async_local")
