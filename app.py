@@ -10,6 +10,7 @@ with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applie
 from utils import loadAutomata, find_matches
 
 from common.utils import *
+
 import os 
 
 config_switch=os.getenv('DOCKER', 'local')
@@ -53,7 +54,6 @@ def get_edgeinfo(edge_string):
     if edge_scored:
         for sentence_key in edge_scored:
             *head,tail=sentence_key.split(':')
-            #TODO: report bug to rediscluster py - this is now returns bytes, despite decode_responses=True
             sentence=rediscluster_client.hget(":".join(head),tail)
             article_id=head[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
@@ -64,7 +64,6 @@ def get_edgeinfo(edge_string):
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
-    # print(result_table)
     print(years_set)
     return jsonify({'results': result_table,'years':list(years_set)}), 200
 

@@ -7,7 +7,7 @@ LOG_PATH.mkdir(exist_ok=True)
 import logging
 run_start_time = datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
 #FIXME: make a task name "Matching entities" dynamic
-logfile = str(LOG_PATH/'log-{}-{}.txt'.format(run_start_time, "Matching entities"))
+logfile = str(LOG_PATH/'log-{}-{}.txt'.format(run_start_time, "API tasks"))
 
 logging.basicConfig(
     level=logging.INFO,

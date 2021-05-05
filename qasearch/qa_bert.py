@@ -23,6 +23,7 @@ def qa(question, sentence_key,hash_tag):
     ### It's a new version using async/away and keymiss event
     ### get "bertqa{06S}_PMC7167827.xml:{06S}:11_When wheezing were recorded?"
     query_key=f"bertqa{hash_tag}_{sentence_key}_{question}"
+    print("Query key " + query_key)
     answer=redisai_cluster_client.get(query_key)
     return answer
 
