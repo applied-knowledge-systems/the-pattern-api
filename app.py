@@ -132,7 +132,7 @@ def qasearch_task():
                 article_id=head[1]
                 title=redis_client.hget(f"article_id:{article_id}",'title')
                 hash_tag=head[-1]
-                answer=qa(question,sentence_key,hash_tag)
+                answer=qa(question,remove_prefix(sentence_key,'sentence:'),hash_tag)
             result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key,'answer':answer})        
 
     return jsonify({'links': links,'results':result_table}), 200

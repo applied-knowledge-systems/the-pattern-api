@@ -20,7 +20,7 @@ def to_np(rai_tensor, data_type):
 
 async def qa_cached_keymiss(record):
     val=record['key'].split('_')
-    cache_key='cache{%s}_%s_%s' % (hashtag(), val[1],val[2])
+    cache_key='bertqa{%s}_%s_%s' % (hashtag(), val[1],val[2])
     log("QA cached called from keymiss")
     res = await qa(val)
     log("Result "+str(res))
@@ -45,9 +45,7 @@ async def qa(record):
     hash_tag="{%s}" % hashtag()
     log("Shard_id "+hash_tag)
     if not tokenizer:
-        tokenizer=loadTokeniser()
-
-     
+        tokenizer=loadTokeniser()     
 
     token_key = f"tokenized:bert:qa:{sentence_key}"
     input_ids_question = tokenizer.encode(question, add_special_tokens=True, truncation=True, return_tensors="np")
