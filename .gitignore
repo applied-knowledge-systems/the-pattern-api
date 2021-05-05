@@ -5,7 +5,7 @@ __pycache__/
 logs/*
 # C extensions
 *.so
-
+traced_bert_qa.pt
 # Distribution / packaging
 .Python
 build/

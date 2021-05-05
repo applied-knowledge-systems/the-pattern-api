@@ -1,9 +1,6 @@
 # the-pattern-api
 API gateway for The Pattern 
 
-- [x] add parsed date as int into nodes
-- [x] add titles to edge api endpoint and edgeview
-
 This is a front end API to data pipeline, to have a right contenct in Redis/RedisGraph:
 
 * Launch RedisGears pipeline via launch docker cluster or better via docker compose
@@ -22,7 +19,7 @@ assuming you have RedisGraph on localhost 9001
 validate
 
 ```
-curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8080/gsearch
+curl -i -H "Content-Type: application/json" -X POST -d '{"search":"laser correction operation"}' http://127.0.0.1:8080/search
 Access-Control-Allow-Origin: *
 Server: Werkzeug/1.0.1 Python/3.8.5
 Date: Thu, 31 Dec 2020 06:30:39 GMT
@@ -44,4 +41,9 @@ curl -X GET "http://127.0.0.1:8080/edge/edges:C5191700:C5125137"
     "2002"
   ]
 }
+```
+BERT Question/Answering 
+
+```
+curl -H "Content-Type: application/json" -X POST -d '{"search":"Effectiveness of community contact reduction"}' http://127.0.0.1:8080/qasearch | jq .results
 ```
