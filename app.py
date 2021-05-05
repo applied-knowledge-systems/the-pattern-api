@@ -9,7 +9,7 @@ with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applie
     import utils
 from utils import loadAutomata, find_matches
 
-
+from common.utils import *
 import os 
 
 config_switch=os.getenv('DOCKER', 'local')
