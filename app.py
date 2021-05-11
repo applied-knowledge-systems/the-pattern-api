@@ -71,7 +71,7 @@ def login():
             response.set_cookie('user_id', str(new_user))
             return response
         else:
-            response=jsonify({'cookie set':new_user})
+            response=redirect(request.referrer)
             response.set_cookie('user_id', str(new_user))
             return response
 
