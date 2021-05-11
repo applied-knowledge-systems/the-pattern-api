@@ -160,7 +160,7 @@ def gsearch_task():
         print(f"Got user id {user_id}")
         mnodes=redis_client.smembers("user:%s:mnodes" % user_id)
     else:
-        mnodes=None
+        mnodes=set()
     nodes=match_nodes(search_string)    
     links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
