@@ -52,23 +52,34 @@ def get_nodes(nodes):
 
     return node_list
 
-def get_edges(nodes, years=None, limits=400):
+def get_edges(nodes, years=None, limits=400,mnodes=None):
     """
     return all edges for the specified nodes, limit hardcoded
     """
     links=list()
     nodes_set=set()
     years_set=set()
+    print(mnodes)
     print(limits)
     if years is not None:
         print("Graph query node params "+str(nodes))
-        params = {'ids':nodes, 'years':years,'limits':int(limits)}
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
-    else:
-        params = {'ids':nodes,'limits':int(limits)}
-        print("Graph query node params "+str(nodes))
-        query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
+        if mnodes is not None:
+            params = {'ids':nodes, 'years':years,'limits':int(limits),'mnodes':mnodes}
+            query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (e.id not in $mnodes) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
+        else:
+            params = {'ids':nodes, 'years':years,'limits':int(limits)}
+            query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where (e.id in ids) and (r.year in $years) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
 
+    else:
+        if mnodes is not None:
+            params = {'ids':nodes,'limits':int(limits),'mnodes':mnodes}
+            query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids and (e.id not in $mnodes) RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
+
+        else:
+            params = {'ids':nodes,'limits':int(limits)}
+            print("Graph query node params "+str(nodes))
+            query="""WITH $ids as ids MATCH (e:entity)-[r]->(t:entity) where e.id in ids RETURN DISTINCT e.id, t.id, max(r.rank), r.year ORDER BY r.rank DESC LIMIT $limits"""
+    print(query)
     result = redis_graph.query(query,params)
     for record in result.result_set:
         nodes_set.add(record[0])

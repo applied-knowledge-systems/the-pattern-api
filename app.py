@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request,abort
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
-
+app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
 import httpimport
 with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
     import utils
@@ -37,11 +37,46 @@ except:
 
 from graphsearch.graph_search import * 
 
-@app.route('/')
-def index():
-    return "Sample server, use RedisGraph instead if available"
+from flask import flash, session, redirect, url_for
+from functools import wraps
+
+def login_required(function_to_protect):
+    @wraps(function_to_protect)
+    def wrapper(*args, **kwargs):
+        user_id = session.get('user_id')
+        print("Did we get user_id from session? " + str(user_id))
+        if user_id:
+            user_id=redis_client.hget("user:%s" % user_id,'id')
+            if user_id:
+                # Success!
+                return function_to_protect(*args, **kwargs)
+            else:
+                flash("Session exists, but user does not exist (anymore)")
+                return redirect(url_for('login'))
+        else:
+            flash("Please log in")
+            return redirect(url_for('login'))
+    return wrapper
+
+@app.route('/login')
+def login():
+    user_id = session.get('user_id')
+    if not user_id:
+        new_user=redis_client.incr("user_id_counter")
+        print(new_user)
+        redis_client.hset("user:%s" % new_user,mapping={'id': new_user})
+        session['user_id']=new_user
+        if 'url' in session:
+            response=redirect(session['url'])
+            response.set_cookie('user_id', str(new_user))
+            return response
+        else:
+            response=jsonify({'cookie set':new_user})
+            response.set_cookie('user_id', str(new_user))
+            return response
 
 @app.route('/edge/<edge_string>')
+@login_required
 def get_edgeinfo(edge_string):
     """
     Tested with edges:C5162902:C5190121
@@ -71,6 +106,21 @@ def get_edgeinfo(edge_string):
     
     print(years_set)
     return jsonify({'results': result_table,'years':list(years_set)}), 200
+
+@app.route('/exclude', methods=['POST','GET'])
+@login_required
+def mark_node():
+    if request.method == 'POST':
+        print(request.json)
+        if 'id' in request.json:
+            node_id=request.json['id']
+    else:
+        print(request.args)
+        if 'id' in request.args:
+            node_id=request.args.get('id')
+    user_id = session.get('user_id')
+    redis_client.sadd("user:%s:mnodes" % user_id,node_id)
+    return f"Finished {node_id}"
 
 
 @app.route('/search', methods=['POST','GET'])
@@ -105,9 +155,14 @@ def gsearch_task():
                 limit=request.args.get('limit')
                 print("Limit arrived via get", limit)
             
-
+    user_id = session.get('user_id')
+    if user_id:
+        print(f"Got user id {user_id}")
+        mnodes=redis_client.smembers("user:%s:mnodes" % user_id)
+    else:
+        mnodes=None
     nodes=match_nodes(search_string)    
-    links, nodes, years_list = get_edges(nodes,years_query,limit)
+    links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
     return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
 
