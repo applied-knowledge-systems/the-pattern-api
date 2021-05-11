@@ -37,25 +37,36 @@ except:
 
 from graphsearch.graph_search import * 
 
-from flask import flash, session, redirect, url_for
+from flask import session, redirect, url_for
 from functools import wraps
+
+def redirect_url(default='index'):
+    return request.args.get('next') or \
+           request.referrer or \
+           request.url
+
+@app.route('/index')
+def index():
+    return "Nothing here"
 
 def login_required(function_to_protect):
     @wraps(function_to_protect)
     def wrapper(*args, **kwargs):
         user_id = session.get('user_id')
         print("Did we get user_id from session? " + str(user_id))
+        print(f"Referer {request.referrer}")
+        print(f"Request URL {request.url}")
         if user_id:
             user_id=redis_client.hget("user:%s" % user_id,'id')
             if user_id:
                 # Success!
                 return function_to_protect(*args, **kwargs)
             else:
-                flash("Session exists, but user does not exist (anymore)")
+                print("Session exists, but user does not exist (anymore)")
                 return redirect(url_for('login'))
         else:
-            flash("Please log in")
-            return redirect(url_for('login'))
+            print("Please log in")
+            return redirect(url_for('login',next=redirect_url()))
     return wrapper
 
 @app.route('/login')
@@ -71,8 +82,7 @@ def login():
             response.set_cookie('user_id', str(new_user))
             return response
         else:
-            response=redirect(request.referrer)
-            response.set_cookie('user_id', str(new_user))
+            response=redirect(redirect_url())
             return response
 
 @app.route('/edge/<edge_string>')
@@ -124,6 +134,7 @@ def mark_node():
 
 
 @app.route('/search', methods=['POST','GET'])
+@login_required
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
