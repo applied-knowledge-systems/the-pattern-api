@@ -58,9 +58,14 @@ def get_edgeinfo(edge_string):
             article_id=head[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
+            summary_fetched=redis_client.hget(f"article_id:{article_id}",'summary')
             if year_fetched:
                 years_set.add(year_fetched)
-            result_table.append({'title':title,'sentence':str(sentence),'sentencekey':sentence_key})
+            if not summary_fetched:
+                redis_client.sadd("failed_summary",f"article_id:{article_id}")
+                summary_fetched="TBC"
+
+            result_table.append({'title':title,'sentence':str(sentence),'sentencekey':sentence_key,'summary':summary_fetched,'article_id':f"article_id:{article_id}"})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
