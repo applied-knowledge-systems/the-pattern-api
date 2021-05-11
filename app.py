@@ -2,8 +2,8 @@
 from flask import Flask, jsonify, request,abort
 from flask_cors import CORS
 app = Flask(__name__)
-CORS(app)
 app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
+CORS(app)
 import httpimport
 with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
     import utils
@@ -86,7 +86,6 @@ def login():
             return response
 
 @app.route('/edge/<edge_string>')
-@login_required
 def get_edgeinfo(edge_string):
     """
     Tested with edges:C5162902:C5190121
@@ -134,7 +133,6 @@ def mark_node():
 
 
 @app.route('/search', methods=['POST','GET'])
-@login_required
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
