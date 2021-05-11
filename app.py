@@ -3,6 +3,10 @@ from flask import Flask, jsonify, request,abort
 from flask_cors import CORS
 app = Flask(__name__)
 app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
+app.config.update(dict(
+  PREFERRED_URL_SCHEME = 'https'
+))
+
 CORS(app)
 import httpimport
 with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
@@ -49,14 +53,6 @@ def redirect_url(default='index'):
 def index():
     return "Nothing here"
 
-
-@app.before_request
-def before_request():
-    if not request.is_secure:
-        url = request.url.replace('http://', 'https://', 1)
-        code = 301
-        return redirect(url, code=code)
-        
 def login_required(function_to_protect):
     @wraps(function_to_protect)
     def wrapper(*args, **kwargs):
