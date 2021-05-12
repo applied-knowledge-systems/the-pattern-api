@@ -142,7 +142,6 @@ def mark_node():
 
 
 @app.route('/search', methods=['POST','GET'])
-@login_required
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
