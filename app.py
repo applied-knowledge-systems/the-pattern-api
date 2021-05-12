@@ -136,7 +136,7 @@ def mark_node():
             node_id=request.args.get('id')
     user_id = session.get('user_id')
     redis_client.sadd("user:%s:mnodes" % user_id,node_id)
-    response = jsonify(message=f"Finished {node_id}")
+    response = jsonify(message=f"Finished {node_id} and {user_id}")
     return response
 
 
