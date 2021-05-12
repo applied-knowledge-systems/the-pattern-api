@@ -54,27 +54,27 @@ def redirect_url(default='index'):
 def index():
     return "Nothing here"
 
-def login_required(function_to_protect):
-    @wraps(function_to_protect)
-    def wrapper(*args, **kwargs):
-        user_id = session.get('user_id')
-        print("Did we get user_id from session? " + str(user_id))
-        print(f"Referer {request.referrer}")
-        print(f"Request URL {request.url}")
-        if user_id:
-            user_id=redis_client.hget("user:%s" % user_id,'id')
-            if user_id:
-                # Success!
-                return function_to_protect(*args, **kwargs)
-            else:
-                print("Session exists, but user does not exist (anymore)")
-                response=redirect(url_for('login'))
-                return response
-        else:
-            print("Please log in")
-            response=redirect(url_for('login',next=redirect_url()))
-            return response
-    return wrapper
+# def login_required(function_to_protect):
+#     @wraps(function_to_protect)
+#     def wrapper(*args, **kwargs):
+#         user_id = session.get('user_id')
+#         print("Did we get user_id from session? " + str(user_id))
+#         print(f"Referer {request.referrer}")
+#         print(f"Request URL {request.url}")
+#         if user_id:
+#             user_id=redis_client.hget("user:%s" % user_id,'id')
+#             if user_id:
+#                 # Success!
+#                 return function_to_protect(*args, **kwargs)
+#             else:
+#                 print("Session exists, but user does not exist (anymore)")
+#                 response=redirect(url_for('login'))
+#                 return response
+#         else:
+#             print("Please log in")
+#             response=redirect(url_for('login',next=redirect_url()))
+#             return response
+#     return wrapper
 
 @app.route('/login')
 def login():
@@ -94,7 +94,6 @@ def login():
             return response
 
 @app.route('/edge/<edge_string>')
-@cross_origin(allow_headers=['Content-Type'])
 def get_edgeinfo(edge_string):
     """
     Tested with edges:C5162902:C5190121
@@ -126,7 +125,6 @@ def get_edgeinfo(edge_string):
     return jsonify({'results': result_table,'years':list(years_set)}), 200
 
 @app.route('/exclude', methods=['POST','GET'])
-@login_required
 def mark_node():
     if request.method == 'POST':
         print(request.json)
@@ -149,6 +147,17 @@ def gsearch_task():
     """
     years_query=None
     limit=300
+    user_id = session.get('user_id')
+    log(f"Got user {user_id} from session")
+    if not user_id:
+        user_id = request.cookies.get('user_id')
+        if not user_id: 
+            """ create new user """ 
+            new_user=redis_client.incr("user_id_counter")
+            redis_client.hset("user:%s" % new_user,mapping={'id': new_user})
+            session['user_id']=new_user
+            user_id=new_user
+
     if request.method == 'POST':
         if not 'search' in request.json:
             abort(400)
@@ -184,6 +193,9 @@ def gsearch_task():
     links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
     response = jsonify({'nodes': node_list,'links': links,'years':years_list})
+    if not request.cookies.get('user_id'):
+        print("User id" +str(user_id))
+        response.set_cookie('user_id',str(user_id))
     return response
 
 from qasearch.qa_bert import *
