@@ -142,7 +142,6 @@ def mark_node():
 
 
 @app.route('/search', methods=['POST','GET'])
-@cross_origin(allow_headers=['Content-Type'])
 @login_required
 def gsearch_task():
     """
