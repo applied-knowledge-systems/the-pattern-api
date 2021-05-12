@@ -67,11 +67,11 @@ def login_required(function_to_protect):
                 return function_to_protect(*args, **kwargs)
             else:
                 print("Session exists, but user does not exist (anymore)")
-                response=redirect(url_for('login', _scheme="https",_external=True))
+                response=redirect(url_for('login'))
                 return response
         else:
             print("Please log in")
-            response=redirect(url_for('login',next=redirect_url(), _scheme="https",_external=True))
+            response=redirect(url_for('login',next=redirect_url()))
             return response
     return wrapper
 
