@@ -67,13 +67,11 @@ def login_required(function_to_protect):
                 return function_to_protect(*args, **kwargs)
             else:
                 print("Session exists, but user does not exist (anymore)")
-                response=redirect(url_for('login'))
-                response.headers.add("Access-Control-Allow-Origin", "*")
+                response=redirect(url_for('login', _scheme="https",_external=True))
                 return response
         else:
             print("Please log in")
-            response=redirect(url_for('login',next=redirect_url()))
-            response.headers.add("Access-Control-Allow-Origin", "*")
+            response=redirect(url_for('login',next=redirect_url(), _scheme="https",_external=True))
             return response
     return wrapper
 
@@ -88,12 +86,10 @@ def login():
         if 'url' in session:
             response=redirect(session['url'])
             response.set_cookie('user_id', str(new_user))
-            response.headers.add("Access-Control-Allow-Origin", "*")
             return response
         else:
             response=redirect(redirect_url())
             response.set_cookie('user_id', str(new_user))
-            response.headers.add("Access-Control-Allow-Origin", "*")
             return response
 
 @app.route('/edge/<edge_string>')
@@ -142,8 +138,6 @@ def mark_node():
     user_id = session.get('user_id')
     redis_client.sadd("user:%s:mnodes" % user_id,node_id)
     response = jsonify(message=f"Finished {node_id}")
-    # Enable Access-Control-Allow-Origin
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 
@@ -191,7 +185,6 @@ def gsearch_task():
     links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
     response = jsonify({'nodes': node_list,'links': links,'years':years_list})
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 from qasearch.qa_bert import *
