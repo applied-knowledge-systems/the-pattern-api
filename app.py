@@ -135,6 +135,10 @@ def mark_node():
         if 'id' in request.args:
             node_id=request.args.get('id')
     user_id = session.get('user_id')
+    log(f"Got user {user_id} from session")
+    if not user_id:
+        user_id = request.cookies.get('user_id')
+        log(f"Got user {user_id} from cookie")
     redis_client.sadd("user:%s:mnodes" % user_id,node_id)
     response = jsonify(message=f"Finished {node_id} and {user_id}")
     return response
@@ -151,6 +155,7 @@ def gsearch_task():
     log(f"Got user {user_id} from session")
     if not user_id:
         user_id = request.cookies.get('user_id')
+        log(f"Got user {user_id} from cookie")
         if not user_id: 
             """ create new user """ 
             new_user=redis_client.incr("user_id_counter")
