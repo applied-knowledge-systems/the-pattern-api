@@ -1,13 +1,13 @@
 #!flask/bin/python
 from flask import Flask, jsonify, request,abort
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
 app.config.update(dict(
   PREFERRED_URL_SCHEME = 'https'
 ))
 
-CORS(app)
+CORS(app,supports_credentials=True)
 import httpimport
 with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
     import utils
@@ -67,10 +67,14 @@ def login_required(function_to_protect):
                 return function_to_protect(*args, **kwargs)
             else:
                 print("Session exists, but user does not exist (anymore)")
-                return redirect(url_for('login'))
+                response=redirect(url_for('login'))
+                response.headers.add("Access-Control-Allow-Origin", "*")
+                return response
         else:
             print("Please log in")
-            return redirect(url_for('login',next=redirect_url()))
+            response=redirect(url_for('login',next=redirect_url()))
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
     return wrapper
 
 @app.route('/login')
@@ -84,12 +88,16 @@ def login():
         if 'url' in session:
             response=redirect(session['url'])
             response.set_cookie('user_id', str(new_user))
+            response.headers.add("Access-Control-Allow-Origin", "*")
             return response
         else:
             response=redirect(redirect_url())
+            response.set_cookie('user_id', str(new_user))
+            response.headers.add("Access-Control-Allow-Origin", "*")
             return response
 
 @app.route('/edge/<edge_string>')
+@cross_origin(allow_headers=['Content-Type'])
 def get_edgeinfo(edge_string):
     """
     Tested with edges:C5162902:C5190121
@@ -133,10 +141,15 @@ def mark_node():
             node_id=request.args.get('id')
     user_id = session.get('user_id')
     redis_client.sadd("user:%s:mnodes" % user_id,node_id)
-    return f"Finished {node_id}"
+    response = jsonify(message=f"Finished {node_id}")
+    # Enable Access-Control-Allow-Origin
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 
 @app.route('/search', methods=['POST','GET'])
+@cross_origin(allow_headers=['Content-Type'])
+@login_required
 def gsearch_task():
     """
     this search using Redis Graph to get list of nodes and links
@@ -177,7 +190,9 @@ def gsearch_task():
     nodes=match_nodes(search_string)    
     links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
-    return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
+    response = jsonify({'nodes': node_list,'links': links,'years':years_list})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 from qasearch.qa_bert import *
 @app.route('/qasearch', methods=['POST'])
