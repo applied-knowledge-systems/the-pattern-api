@@ -216,7 +216,7 @@ def qasearch_task():
         abort(400)
     question=request.json['search']
     nodes=match_nodes(question)
-    links,_,_=get_edges(nodes)
+    links,_,_=get_edges(nodes,limits=1)
     result_table=[]
     for each_record in links[0:5]:  
         edge_query=each_record['source']+":"+each_record['target'] 
