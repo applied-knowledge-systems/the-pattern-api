@@ -1,8 +1,13 @@
 #!flask/bin/python
 from flask import Flask, jsonify, request,abort
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
-CORS(app)
+app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
+app.config.update(dict(
+  PREFERRED_URL_SCHEME = 'https'
+))
+
+CORS(app,supports_credentials=True)
 
 import httpimport
 with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applied-knowledge-systems/the-pattern-automata/main/automata/"):
@@ -37,9 +42,56 @@ except:
 
 from graphsearch.graph_search import * 
 
-@app.route('/')
+from flask import session, redirect, url_for
+from functools import wraps
+
+def redirect_url(default='index'):
+    return request.args.get('next') or \
+           request.referrer or \
+           request.url
+
+@app.route('/index')
 def index():
-    return "Sample server, use RedisGraph instead if available"
+    return "Nothing here"
+
+# def login_required(function_to_protect):
+#     @wraps(function_to_protect)
+#     def wrapper(*args, **kwargs):
+#         user_id = session.get('user_id')
+#         print("Did we get user_id from session? " + str(user_id))
+#         print(f"Referer {request.referrer}")
+#         print(f"Request URL {request.url}")
+#         if user_id:
+#             user_id=redis_client.hget("user:%s" % user_id,'id')
+#             if user_id:
+#                 # Success!
+#                 return function_to_protect(*args, **kwargs)
+#             else:
+#                 print("Session exists, but user does not exist (anymore)")
+#                 response=redirect(url_for('login'))
+#                 return response
+#         else:
+#             print("Please log in")
+#             response=redirect(url_for('login',next=redirect_url()))
+#             return response
+#     return wrapper
+
+@app.route('/login')
+def login():
+    user_id = session.get('user_id')
+    if not user_id:
+        new_user=redis_client.incr("user_id_counter")
+        print(new_user)
+        redis_client.hset("user:%s" % new_user,mapping={'id': new_user})
+        session['user_id']=new_user
+        if 'url' in session:
+            response=redirect(session['url'])
+            response.set_cookie('user_id', str(new_user))
+            return response
+        else:
+            response=redirect(redirect_url())
+            response.set_cookie('user_id', str(new_user))
+            return response
 
 @app.route('/edge/<edge_string>')
 def get_edgeinfo(edge_string):
@@ -54,20 +106,42 @@ def get_edgeinfo(edge_string):
     if edge_scored:
         for sentence_key in edge_scored:
             *head,tail=sentence_key.split(':')
-            #TODO: report bug to rediscluster py - this is now returns bytes, despite decode_responses=True
             sentence=rediscluster_client.hget(":".join(head),tail)
             article_id=head[1]
             title=redis_client.hget(f"article_id:{article_id}",'title')
             year_fetched=redis_client.hget(f"article_id:{article_id}",'year')
+            summary_fetched=redis_client.hget(f"article_id:{article_id}",'summary')
             if year_fetched:
                 years_set.add(year_fetched)
-            result_table.append({'title':title,'sentence':str(sentence),'sentencekey':sentence_key})
+            if not summary_fetched:
+                redis_client.sadd("failed_summary",f"article_id:{article_id}")
+                summary_fetched="TBC"
+
+            result_table.append({'title':title,'sentence':str(sentence),'sentencekey':sentence_key,'summary':summary_fetched,'article_id':f"article_id:{article_id}"})
     else:
         result_table.append(redis_client.hgetall(f'{edge_string}'))
     
-    # print(result_table)
     print(years_set)
     return jsonify({'results': result_table,'years':list(years_set)}), 200
+
+@app.route('/exclude', methods=['POST','GET'])
+def mark_node():
+    if request.method == 'POST':
+        print(request.json)
+        if 'id' in request.json:
+            node_id=request.json['id']
+    else:
+        print(request.args)
+        if 'id' in request.args:
+            node_id=request.args.get('id')
+    user_id = session.get('user_id')
+    log(f"Got user {user_id} from session")
+    if not user_id:
+        user_id = request.cookies.get('user_id')
+        log(f"Got user {user_id} from cookie")
+    redis_client.sadd("user:%s:mnodes" % user_id,node_id)
+    response = jsonify(message=f"Finished {node_id} and {user_id}")
+    return response
 
 
 @app.route('/search', methods=['POST','GET'])
@@ -77,6 +151,18 @@ def gsearch_task():
     """
     years_query=None
     limit=300
+    user_id = session.get('user_id')
+    log(f"Got user {user_id} from session")
+    if not user_id:
+        user_id = request.cookies.get('user_id')
+        log(f"Got user {user_id} from cookie")
+        if not user_id: 
+            """ create new user """ 
+            new_user=redis_client.incr("user_id_counter")
+            redis_client.hset("user:%s" % new_user,mapping={'id': new_user})
+            session['user_id']=new_user
+            user_id=new_user
+
     if request.method == 'POST':
         if not 'search' in request.json:
             abort(400)
@@ -102,11 +188,20 @@ def gsearch_task():
                 limit=request.args.get('limit')
                 print("Limit arrived via get", limit)
             
-
+    user_id = session.get('user_id')
+    if user_id:
+        print(f"Got user id {user_id}")
+        mnodes=redis_client.smembers("user:%s:mnodes" % user_id)
+    else:
+        mnodes=set()
     nodes=match_nodes(search_string)    
-    links, nodes, years_list = get_edges(nodes,years_query,limit)
+    links, nodes, years_list = get_edges(nodes,years_query,limit,mnodes)
     node_list=get_nodes(nodes)
-    return jsonify({'nodes': node_list,'links': links,'years':years_list}), 200
+    response = jsonify({'nodes': node_list,'links': links,'years':years_list})
+    if not request.cookies.get('user_id'):
+        print("User id" +str(user_id))
+        response.set_cookie('user_id',str(user_id))
+    return response
 
 from qasearch.qa_bert import *
 @app.route('/qasearch', methods=['POST'])
@@ -121,7 +216,7 @@ def qasearch_task():
         abort(400)
     question=request.json['search']
     nodes=match_nodes(question)
-    links,_,_=get_edges(nodes)
+    links,_,_=get_edges(nodes,limits=1)
     result_table=[]
     for each_record in links[0:5]:  
         edge_query=each_record['source']+":"+each_record['target'] 
@@ -134,7 +229,7 @@ def qasearch_task():
                 article_id=head[1]
                 title=redis_client.hget(f"article_id:{article_id}",'title')
                 hash_tag=head[-1]
-                answer=qa(question,sentence_key,hash_tag)
+                answer=qa(question,remove_prefix(sentence_key,'sentence:'),hash_tag)
             result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key,'answer':answer})        
 
     return jsonify({'links': links,'results':result_table}), 200

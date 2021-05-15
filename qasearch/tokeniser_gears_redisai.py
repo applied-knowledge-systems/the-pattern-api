@@ -25,8 +25,6 @@ def parse_sentence(record):
     for idx, value in sorted(record['value'].items(), key=lambda item: int(item[0])):
         tokens = tokenizer.encode(value, add_special_tokens=False, max_length=511, truncation=True, return_tensors="np")
         tokens = np.append(tokens,tokenizer.sep_token_id).astype(np.int64) 
-        log(str(tokens.shape))
-        log(str(tokens))
         tensor=redisAI.createTensorFromBlob('INT64', tokens.shape, tokens.tobytes())
         
         key_prefix='sentence:'
