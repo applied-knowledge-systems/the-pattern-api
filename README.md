@@ -47,3 +47,4 @@ BERT Question/Answering
 ```
 curl -H "Content-Type: application/json" -X POST -d '{"search":"Effectiveness of community contact reduction"}' http://127.0.0.1:8080/qasearch | jq .results
 ```
+
