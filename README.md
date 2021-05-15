@@ -48,3 +48,13 @@ BERT Question/Answering
 curl -H "Content-Type: application/json" -X POST -d '{"search":"Effectiveness of community contact reduction"}' http://127.0.0.1:8080/qasearch | jq .results
 ```
 
+Register on Redis Enterprise and pass REDIS_ENDPOINT_URI and REDIS_PASSWORD
+
+### Google Cloud Run
+
+[![Run on Google
+Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=https://github.com/applied-knowledge-systems/the-pattern-api.git)
+
+### Heroku
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/applied-knowledge-systems/the-pattern-api.git)
