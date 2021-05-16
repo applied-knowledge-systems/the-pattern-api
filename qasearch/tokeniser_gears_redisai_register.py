@@ -12,6 +12,9 @@ def loadTokeniser():
 def remove_prefix(text, prefix):
     return text[text.startswith(prefix) and len(prefix):]
 
+def onRegistered():
+    global tokenizer
+    tokenizer=loadTokeniser()
 
 
 def parse_sentence(record):
@@ -37,4 +40,4 @@ def parse_sentence(record):
 gb = GB()
 gb.foreach(parse_sentence)
 gb.count()
-gb.register('sentence:*', keyTypes=['hash'], mode="async_local")
+gb.register('sentence:*', keyTypes=['hash'], mode="async_local",onRegistered=onRegistered)
