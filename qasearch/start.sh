@@ -1,7 +1,7 @@
-pip install -r requirements.txt 
-pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
-pip install ml2rt
-pip install git+https://github.com/RedisAI/redisai-py.git@cluster_api#egg=redisai
+pip3 install -r requirements.txt 
+pip3 install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install ml2rt
+pip3 install git+https://github.com/RedisAI/redisai-py.git@cluster_api#egg=redisai
 python3 export_load_bert.py
 gears-cli run --host 127.0.0.1 --port 30001 tokeniser_gears_redisai.py --requirements requirements.txt
 gears-cli run --host 127.0.0.1 --port 30001 qa_redisai_gear_map_keymiss_np.py
