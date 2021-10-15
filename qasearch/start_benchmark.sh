@@ -26,4 +26,5 @@ curl -i -H "Content-Type: application/json" -X POST -d '{"search":"Who performs 
 #          avg       min       p50       p95       p99       max
 #     2592.918   169.984  3000.319  3000.319  3000.319  3000.319
 # laptop with i7 CPU
+## any optimisations shall be put into export_load_bert.py
 
