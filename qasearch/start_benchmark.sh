@@ -1,5 +1,5 @@
 pip3 install -r requirements.txt 
-pip3 install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install torch==1.9.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
 pip3 install ml2rt
 pip3 install git+https://github.com/RedisAI/redisai-py.git@cluster_api#egg=redisai
 python3 export_load_bert.py
