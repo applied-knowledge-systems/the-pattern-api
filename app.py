@@ -214,7 +214,7 @@ from qasearch.qa_bert import *
 def qasearch_task():
     """
     this search using Redis Graph to get list of articles and sentences and then calls BERT QA model to create answer
-    TODO: pre-process articles with qa tokeniser 
+    TODO: choose best answer from all the sentences 
     """
      
 
@@ -236,7 +236,7 @@ def qasearch_task():
                 title=redis_client.hget(f"article_id:{article_id}",'title')
                 hash_tag=head[-1]
                 answer=qa(question,remove_prefix(sentence_key,'sentence:'),hash_tag)
-            result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key,'answer':answer})        
+                result_table.append({'title':title,'sentence':sentence,'sentencekey':sentence_key,'answer':answer})        
 
     return jsonify({'links': links,'results':result_table}), 200
 
