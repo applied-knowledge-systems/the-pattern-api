@@ -1,3 +1,4 @@
+setuptools-rust
 httpimport
 redis==3.5.3
 git+https://github.com/AlexMikhalev/redis-py-cluster@gears_rg_trigger#egg=redis-py-cluster

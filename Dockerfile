@@ -1,7 +1,10 @@
 FROM ubuntu:18.04
 
 RUN apt-get update -y && \
-    apt-get install -y git python3 python3-pip
+    apt-get install -y git python3 python3-pip curl gnupg python3-setuptools
+
+RUN pip3 install -U pip
+# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && source $HOME/.cargo/env
 
 # We copy just the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
