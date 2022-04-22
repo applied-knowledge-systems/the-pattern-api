@@ -42,12 +42,12 @@ content_text="An impediment to future studies of airborne transmission of respir
 question="Who performs viral transmission among adults?"
 import time
 
-t = time.process_time_ns()
+t = time.perf_counter()
 for i in range(20):
     answer=qa(question,content_text)
     print(answer)
-elapsed_time = time.process_time_ns() - t
-print(f"Total {elapsed_time} nanoseconds")
-print(f"{elapsed_time/20} nanoseconds per inference")
+elapsed_time = time.perf_counter() - t
+print(f"Total {elapsed_time} counts")
+print(f"{elapsed_time/20} counts per inference")
 
 
