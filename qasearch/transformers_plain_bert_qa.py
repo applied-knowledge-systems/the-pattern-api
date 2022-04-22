@@ -48,6 +48,6 @@ for i in range(20):
     print(answer)
 elapsed_time = time.process_time() - t
 print(f"Total {elapsed_time} seconds")
-print(f"{elapsed_time/10} seconds")
+print(f"{elapsed_time/20} seconds")
 
 
