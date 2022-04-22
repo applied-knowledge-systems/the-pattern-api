@@ -43,9 +43,11 @@ question="Who performs viral transmission among adults?"
 import time
 
 t = time.process_time()
-answer=qa(question,content_text)
+for i in range(20):
+    answer=qa(question,content_text)
+    print(answer)
 elapsed_time = time.process_time() - t
-print(answer)
-print(f"{elapsed_time} seconds")
+print(f"Total {elapsed_time} seconds")
+print(f"{elapsed_time/10} seconds")
 
 
