@@ -1,11 +1,13 @@
 #!flask/bin/python
 from flask import Flask, jsonify, request,abort
 from flask_cors import CORS, cross_origin
+from furl import furl
 app = Flask(__name__)
 app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
 app.config.update(dict(
   PREFERRED_URL_SCHEME = 'https'
 ))
+
 
 CORS(app,supports_credentials=True)
 
@@ -15,9 +17,10 @@ with httpimport.remote_repo(['utils'], "https://raw.githubusercontent.com/applie
 from utils import loadAutomata, find_matches
 
 from common.utils import *
-
+from uuid import uuid4
 import os 
-
+client_id = os.getenv('GITHUB_CLIENT_ID')
+client_secret = os.getenv('GITHUB_SECRET')
 config_switch=os.getenv('DOCKER', 'local')
 REDISGRAPH_PORT=os.getenv('REDISGRAPH_PORT', "9001")
 if config_switch=='local':
@@ -51,9 +54,45 @@ def redirect_url(default='index'):
            request.referrer or \
            request.url
 
-@app.route('/index')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return "Nothing here"
+    url = 'https://github.com/login/oauth/authorize'
+    params = {
+        'client_id': client_id,
+        
+        # 'redirect_uri': 'https://api.thepattern.digital/oauth2/callback',
+        'scope': 'read:user,read:email',
+        'state': uuid4(),
+        'allow_signup': 'true'
+    }
+    url = furl(url).set(params)
+    return redirect(str(url), 302)
+
+@app.route('/oauth2/callback')
+def oauth2_callback():
+
+    code = request.args.get('code')
+    access_token_url = 'https://github.com/login/oauth/access_token'
+    payload = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'code': code,
+        # 'redirect_uri':
+        'state': uuid4()
+    }
+    r = requests.post(access_token_url, json=payload, headers={'Accept': 'application/json'})
+    access_token = json.loads(r.text).get('access_token')
+    print(access_token)
+    
+    access_user_url = 'https://api.github.com/user'
+    r = requests.get(access_user_url, headers={'Authorization': 'token ' + access_token})
+    return jsonify({
+        'status': 'success',
+        'data': json.loads(r.text)
+    })
+
+
+#  copy pasted from original gist: https://gist.github.com/xros/aba970d1098d916200d0acce8feb0251 
 
 # def login_required(function_to_protect):
 #     @wraps(function_to_protect)
