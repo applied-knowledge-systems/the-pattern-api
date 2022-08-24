@@ -1,7 +1,12 @@
 #!flask/bin/python
 from flask import Flask, jsonify, request,abort
+import flask.json as json
 from flask_cors import CORS, cross_origin
 from furl import furl
+import requests
+from flask import session, redirect, url_for
+from functools import wraps
+
 app = Flask(__name__)
 app.config['SECRET_KEY']='P3JqafOaPHmi7DV96aZA'
 app.config.update(dict(
@@ -46,10 +51,9 @@ except:
 
 from graphsearch.graph_search import * 
 
-from flask import session, redirect, url_for
-from functools import wraps
 
-def redirect_url(default='index'):
+
+def redirect_url(default='login'):
     return request.args.get('next') or \
            request.referrer or \
            request.url
@@ -62,7 +66,7 @@ def index():
         
         # 'redirect_uri': 'https://api.thepattern.digital/oauth2/callback',
         'scope': 'read:user,read:email',
-        'state': uuid4(),
+        'state': str(uuid4().hex),
         'allow_signup': 'true'
     }
     url = furl(url).set(params)
@@ -78,43 +82,78 @@ def oauth2_callback():
         'client_secret': client_secret,
         'code': code,
         # 'redirect_uri':
-        'state': uuid4()
+        'state': str(uuid4().hex)
     }
     r = requests.post(access_token_url, json=payload, headers={'Accept': 'application/json'})
     access_token = json.loads(r.text).get('access_token')
     print(access_token)
     
     access_user_url = 'https://api.github.com/user'
-    r = requests.get(access_user_url, headers={'Authorization': 'token ' + access_token})
+    response = requests.get(access_user_url, headers={'Authorization': 'token ' + access_token})
+    data=response.json()
+    user_email=data["email"]
+    user_login=data["login"]
+    user_id=data["id"]
+    # response=redirect(url_for('login',next=redirect_url()))
+    # response.set_cookie('user_id', str(user_id))
+    # response.set_cookie('user_login', str(user_login))
+    # return response
+    query = """
+        {
+        viewer {
+            sponsorshipsAsSponsor(first: 100) {
+            nodes {
+                sponsorable {
+                ... on User {
+                    id
+                    email
+                    url
+                }
+                ... on Organization {
+                    id
+                    email
+                    name
+                    url
+                }
+                }
+                tier {
+                id
+                name
+                monthlyPriceInDollars
+                monthlyPriceInCents
+                }
+            }
+            }
+        }
+        }
+        """
+    response_graphql = requests.post('https://api.github.com/graphql', json={'query': query}, headers={'Authorization': 'token ' + access_token})
+    response_graphql_data=response_graphql.json()["data"]
+    if response_graphql_data["viewer"]["sponsorshipsAsSponsor"]["nodes"][0]["sponsorable"]["name"]=="applied-knowledge-systems":
+        # if user is a sponsor of Applied Knowledge System add them to set of sponsors
+        redis_client.sadd('sponsors',user_id)
+
+    redis_client.hset("user_details:%s" % user_id,mapping={
+        'access_token': access_token,
+        'email': user_email,
+        'id': user_id,
+        'user_login': user_login,
+        'graphql': response_graphql_data,
+    })
     return jsonify({
         'status': 'success',
-        'data': json.loads(r.text)
+        'access_token': access_token,
+        'email': user_email,
+        'id': user_id,
+        'user_login': user_login,
+        'graphql': response_graphql_data,
     })
 
 
-#  copy pasted from original gist: https://gist.github.com/xros/aba970d1098d916200d0acce8feb0251 
-
-# def login_required(function_to_protect):
-#     @wraps(function_to_protect)
-#     def wrapper(*args, **kwargs):
-#         user_id = session.get('user_id')
-#         print("Did we get user_id from session? " + str(user_id))
-#         print(f"Referer {request.referrer}")
-#         print(f"Request URL {request.url}")
-#         if user_id:
-#             user_id=redis_client.hget("user:%s" % user_id,'id')
-#             if user_id:
-#                 # Success!
-#                 return function_to_protect(*args, **kwargs)
-#             else:
-#                 print("Session exists, but user does not exist (anymore)")
-#                 response=redirect(url_for('login'))
-#                 return response
-#         else:
-#             print("Please log in")
-#             response=redirect(url_for('login',next=redirect_url()))
-#             return response
-#     return wrapper
+# TODO: set rgsync for all preferences filtered by sponsors
+# TODO: sync back preferences of the sponsors back from Redis Enterprise
+# TODO: sync sponsors smember with redis enterprise
+#  above is taken original gist: https://gist.github.com/xros/aba970d1098d916200d0acce8feb0251 
 
 @app.route('/login')
 def login():

@@ -2,13 +2,9 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "../cord19redisknowledgegraph"
-		},
-		{
-			"path": "../the-pattern-platform"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
 }

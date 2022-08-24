@@ -34,7 +34,6 @@ def load_bert():
 
     with open(model_file, 'rb') as f:
         model = f.read()
-    # FIXME: add rgcluster or localhost depending on env variable - inside or outside docker run
     cc = ClusterClient(startup_nodes = startup_nodes)
     hash_tags = cc.execute_command("RG.PYEXECUTE",  "gb = GB('ShardsIDReader').map(lambda x:hashtag()).run()")[0]
     print(hash_tags)
