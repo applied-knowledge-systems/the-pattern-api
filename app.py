@@ -133,17 +133,15 @@ def oauth2_callback():
     response_graphql_data=response_graphql.json()["data"]
     if response_graphql_data["viewer"]["sponsorshipsAsSponsor"]["nodes"][0]["sponsorable"]["name"]==org_name:
         # if user is a sponsor of Applied Knowledge System add them to set of sponsors
-        redis_client.sadd('sponsors',user_id)
+        redis_client.sadd(f'sponsors:{org_name}',user_id)
     # if RedisJSON enabled:
     # redis_client.json().set(f"user_details:{user_id}", '$', {
-    #     'access_token': access_token,
     #     'email': user_email,
     #     'id': user_id,
     #     'user_login': user_login,
     #     'graphql': response_graphql_data,
     # })
     redis_client.hset(f"user_details:{user_id}", mapping={
-        'access_token': access_token,
         'email': user_email,
         'id': user_id,
         'user_login': user_login
