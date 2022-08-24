@@ -26,6 +26,8 @@ from uuid import uuid4
 import os 
 client_id = os.getenv('GITHUB_CLIENT_ID')
 client_secret = os.getenv('GITHUB_SECRET')
+org_name="applied-knowledge-systems"
+
 config_switch=os.getenv('DOCKER', 'local')
 REDISGRAPH_PORT=os.getenv('REDISGRAPH_PORT', "9001")
 if config_switch=='local':
@@ -129,16 +131,22 @@ def oauth2_callback():
         """
     response_graphql = requests.post('https://api.github.com/graphql', json={'query': query}, headers={'Authorization': 'token ' + access_token})
     response_graphql_data=response_graphql.json()["data"]
-    if response_graphql_data["viewer"]["sponsorshipsAsSponsor"]["nodes"][0]["sponsorable"]["name"]=="applied-knowledge-systems":
+    if response_graphql_data["viewer"]["sponsorshipsAsSponsor"]["nodes"][0]["sponsorable"]["name"]==org_name:
         # if user is a sponsor of Applied Knowledge System add them to set of sponsors
         redis_client.sadd('sponsors',user_id)
-
-    redis_client.hset("user_details:%s" % user_id,mapping={
+    # if RedisJSON enabled:
+    # redis_client.json().set(f"user_details:{user_id}", '$', {
+    #     'access_token': access_token,
+    #     'email': user_email,
+    #     'id': user_id,
+    #     'user_login': user_login,
+    #     'graphql': response_graphql_data,
+    # })
+    redis_client.hset(f"user_details:{user_id}", mapping={
         'access_token': access_token,
         'email': user_email,
         'id': user_id,
-        'user_login': user_login,
-        'graphql': response_graphql_data,
+        'user_login': user_login
     })
     return jsonify({
         'status': 'success',
