@@ -44,8 +44,8 @@ import time
 
 t = time.process_time()
 answer=qa(question,content_text)
-elapsed_time = time.process_time() - t
 print(answer)
-print(f"{elapsed_time} seconds")
+elapsed_time = time.process_time() - t
+print(f"Total {elapsed_time} seconds")
 
 

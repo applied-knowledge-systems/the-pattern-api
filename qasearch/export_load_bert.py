@@ -3,6 +3,19 @@ import torch
 from redisai import ClusterClient
 import numpy as np
 
+import os 
+
+config_switch=os.getenv('DOCKER', 'local')
+REDISGRAPH_PORT=os.getenv('REDISGRAPH_PORT', "9001")
+if config_switch=='local':
+    startup_nodes = [{"host": "127.0.0.1", "port": "30001"}, {"host": "127.0.0.1", "port":"30002"}, {"host":"127.0.0.1", "port":"30003"}]
+    host="127.0.0.1"
+    port=REDISGRAPH_PORT
+else:
+    startup_nodes = [{"host": "rgcluster", "port": "30001"}, {"host": "rgcluster", "port":"30002"}, {"host":"rgcluster", "port":"30003"}]
+    host="redisgraph"
+    port=REDISGRAPH_PORT
+
 def export_bert():
     model = BertForQuestionAnswering.from_pretrained("bert-large-uncased-whole-word-masking-finetuned-squad", torchscript=True)
     model.eval()
@@ -21,7 +34,7 @@ def load_bert():
 
     with open(model_file, 'rb') as f:
         model = f.read()
-    startup_nodes = [{"host": "127.0.0.1", "port": "30001"}, {"host": "127.0.0.1", "port":"30002"}, {"host":"127.0.0.1", "port":"30003"}]
+    # FIXME: add rgcluster or localhost depending on env variable - inside or outside docker run
     cc = ClusterClient(startup_nodes = startup_nodes)
     hash_tags = cc.execute_command("RG.PYEXECUTE",  "gb = GB('ShardsIDReader').map(lambda x:hashtag()).run()")[0]
     print(hash_tags)
