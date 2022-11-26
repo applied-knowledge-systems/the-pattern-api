@@ -1,9 +1,10 @@
 httpimport==0.7.2
 setuptools-rust
 redis==3.5.3
+gears-cli==1.1.3
 git+https://github.com/AlexMikhalev/redis-py-cluster@gears_rg_trigger#egg=redis-py-cluster
 joblib==1.1.0
-pyahocorasick==2.0.0b1
+pyahocorasick==1.4.4
 ujson==2.0.3
 flask
 flask_cors

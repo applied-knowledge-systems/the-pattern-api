@@ -1,0 +1,1 @@
+cd /app/qasearch/ && bash ./start_docker.sh
