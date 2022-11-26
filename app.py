@@ -37,7 +37,7 @@ except:
 
 try: 
     from rediscluster import RedisCluster
-    rediscluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+    rediscluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True, skip_full_coverage_check=True)
 except:
     log("RedisCluster is not available")
 
