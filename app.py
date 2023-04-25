@@ -46,7 +46,7 @@ except:
     log("Redis is not available ")
 
 try: 
-    from rediscluster import RedisCluster
+    from redis.cluster import RedisCluster
     rediscluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 except:
     log("RedisCluster is not available")

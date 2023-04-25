@@ -11,7 +11,7 @@ else:
     startup_nodes = [{"host": "rgcluster", "port": "30001"}, {"host": "rgcluster", "port":"30002"}, {"host":"rgcluster", "port":"30003"}]
 
 try: 
-    from rediscluster import RedisCluster
+    from redis.cluster import RedisCluster
     redisai_cluster_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
 except:
     print("Redis Cluster is not available")

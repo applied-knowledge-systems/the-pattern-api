@@ -1,1 +1,1 @@
-transformers==4.4.2
+transformers[sentencepiece]==4.4.2
